@@ -15,6 +15,7 @@ import jakarta.transaction.Transactional
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 
 
@@ -24,7 +25,8 @@ class MemberService(
     private val memberRepository: MemberRepository,
     private val memberRoleRepository: MemberRoleRepository,
     private val authenticationManagerBuilder: AuthenticationManagerBuilder,
-    private val jwtTokenProvider: JwtTokenProvider
+    private val jwtTokenProvider: JwtTokenProvider,
+    private val passwordEncoder: PasswordEncoder
 ) {
     /**
      * 회원가입
@@ -36,7 +38,7 @@ class MemberService(
             throw InvalidInputException("loginId", "이미 등록된 ID 입니다.")
         }
 
-        member = memberDtoRequest.toEntity()
+        member = memberDtoRequest.toEntity(passwordEncoder)
         memberRepository.save(member)
 
         val memberRole: MemberRole = MemberRole(null, ROLE.MEMBER, member)
@@ -68,7 +70,7 @@ class MemberService(
      * 내 정보 수정
      */
     fun saveMyInfo(memberDtoRequest: MemberDtoRequest): String {
-        val member : Member = memberDtoRequest.toEntity()
+        val member : Member = memberDtoRequest.toEntity(passwordEncoder)
         memberRepository.save(member)
         return "수정 완료되었습니다."
     }
